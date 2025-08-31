@@ -10,7 +10,9 @@ It includes a GUI for interaction and a solving engine that can handle puzzles o
 
 ## Installation
 
-### 1. Clone the repository
+### Clone the repository
 ```bash
 git clone https://github.com/DRR171/SudokuSolver.git
 cd SudokuSolver
+
+pip install -r requirements.txt
