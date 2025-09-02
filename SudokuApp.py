@@ -16,7 +16,7 @@ class SudokuApp:
     
     def __init__(self, master):
         self.master = master
-        self.master.title("Sudoku Solver v1.1")
+        self.master.title("Sudoku Solver v1.1.1")
         self.master.configure(bg=self.COLOR_BG1)
         self._center_window(600, 600)
 
@@ -28,6 +28,9 @@ class SudokuApp:
         self._create_buttons()
         self._create_grid()
         self.master.attributes('-topmost', 1)
+        
+        self.sr = Sudoku_Recognizer()
+        self.sr.load_digit_model()
 
     def _center_window(self, width, height):
         screen_width, screen_height = self.master.winfo_screenwidth(), self.master.winfo_screenheight()
@@ -172,14 +175,11 @@ class SudokuApp:
         if not filepath:
             return
         
-        sr = Sudoku_Recognizer()
-        sr.set_image_path(filepath)
-        sr.read_image()
-        sr.create_cell_image_list()
-        sr.load_digit_model()
-        sr.recognize_board()
-        sr.plot_digit_cells_preds()
-        recognized_board = sr.get_recognized_board()
+        self.sr.set_image_path(filepath)
+        self.sr.read_image()
+        self.sr.create_cell_image_list()
+        self.sr.recognize_board()
+        recognized_board = self.sr.get_recognized_board()
         board = Sudoku(recognized_board)
         self.set_board_array(board)
         
