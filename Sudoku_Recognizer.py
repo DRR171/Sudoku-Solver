@@ -22,12 +22,7 @@ class Sudoku_Recognizer:
     
     def load_digit_model(self):
         try:
-            # self.digit_recog_model = load_model('digit_recognizer_model.h5', compile=False)
-            # self.digit_recog_model = load_model('digit_recognizer_2025_09_02.h5', compile=False)
-            # self.digit_recog_model = load_model('digit_recognizer_2025_09_03.h5', compile=False)
-            # self.digit_recog_model = load_model('digit_recognizer_2025_09_03_21_41.h5', compile=False)
-            # self.digit_recog_model = load_model('digit_recognizer_2025_09_03_22_43.h5', compile=False)
-            self.digit_recog_model = load_model('digit_recognizer_2025_09_04_11_11.h5', compile=False)
+            self.digit_recog_model = load_model('digit_recognizer_model_v_1_2_0.h5', compile=False)
         except Exception as e:
             return e
     
