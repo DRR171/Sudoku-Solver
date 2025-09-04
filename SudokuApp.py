@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, Menu, filedialog as fd, messagebox
 import tkinter.font as tkFont
 import numpy as np
+from PIL import ImageGrab
 from Sudoku import Sudoku
 from Sudoku_Recognizer import Sudoku_Recognizer
 
@@ -16,10 +17,10 @@ class SudokuApp:
     
     def __init__(self, master):
         self.master = master
-        self.master.title("Sudoku Solver v1.1.1")
+        self.master.title("Sudoku Solver v1.2.0")
         self.master.configure(bg=self.COLOR_BG1)
         self._center_window(600, 600)
-
+        
         self.file_path = None
         self.cells = []
         self.font = tkFont.Font(size=14, weight='bold')
@@ -31,7 +32,7 @@ class SudokuApp:
         
         self.sr = Sudoku_Recognizer()
         self.sr.load_digit_model()
-
+        
     def _center_window(self, width, height):
         screen_width, screen_height = self.master.winfo_screenwidth(), self.master.winfo_screenheight()
         center_x = int(screen_width/2 - width/2)
@@ -60,7 +61,12 @@ class SudokuApp:
         file_menu.add_command(label='Save', accelerator='Ctrl+S', command=self.on_save)
         file_menu.add_command(label='Save As...', accelerator='Ctrl+Shift+S', command=self.on_save_as)
         file_menu.add_separator()
-        file_menu.add_command(label='Board Recognizer (BETA)', command=self.on_board_recognizer)
+        
+        submenu = tk.Menu(file_menu, tearoff=0)
+        submenu.add_command(label='Load image from file', command=self.on_board_recognizer_file)
+        submenu.add_command(label='Load image from clipboard', command=self.on_board_recognizer_clipboard)
+        file_menu.add_cascade(label='Board Recognizer (BETA)', menu=submenu)
+        
         file_menu.add_separator()
         file_menu.add_command(label='Exit', accelerator='Ctrl+Q', command=self.on_exit)
         menubar.add_cascade(label="File", menu=file_menu)
@@ -110,10 +116,13 @@ class SudokuApp:
     # Event Handlers:
         
     def on_solve(self):
+        
         board_array = self.get_board_array()
         sudoku = Sudoku(board_array)
         
-        valid, message = self.check_board_validity(sudoku)
+        # valid, message = self.check_board_validity(sudoku)
+        valid, message = sudoku.board_status()
+        
         if not(valid):
             messagebox.showwarning("Sudoku Solver", message)
             return
@@ -168,21 +177,44 @@ class SudokuApp:
             self.file_path = path
             np.savetxt(path, self.get_board_array(), fmt='%d', delimiter='')
     
-    def on_board_recognizer(self):
+    def on_board_recognizer_file(self):
+        
         filepath = fd.askopenfilename(
-                    filetypes=[("Select image file", "*.png;*.jpg;*.jpeg")])
+            title="Select an Image",
+            filetypes=[
+                ("PNG files", "*.png"),
+                ("JPEG files", "*.jpg *.jpeg"),
+                ("GIF files", "*.gif"),
+                ("All image files", "*.png *jpg *.jpeg *.gif *.bmp *.ico"),
+            ]
+        )
+        
         
         if not filepath:
             return
         
         self.sr.set_image_path(filepath)
-        self.sr.read_image()
+        self.sr.read_image_file()
+        self.read_recognize_board()
+    
+    def on_board_recognizer_clipboard(self):
+        
+        img = ImageGrab.grabclipboard()
+        
+        if img is None:
+            messagebox.showwarning("Sudoku Solver", "No image in clipboard")
+        else:
+            self.sr.read_image_crop(img)
+            self.read_recognize_board()
+    
+    def read_recognize_board(self):
         self.sr.create_cell_image_list()
         self.sr.recognize_board()
         recognized_board = self.sr.get_recognized_board()
         board = Sudoku(recognized_board)
         self.set_board_array(board)
-        
+        # self.sr.plot_digit_cells_preds()
+    
     def on_exit(self):
         self.master.destroy()
     
@@ -224,52 +256,6 @@ class SudokuApp:
         if new_val == '':
             return True
         return False
-                
-    def check_board_validity(self, sudoku):
-        # Check if board if valid before solving
-        empty_cells = sudoku.get_empty_cells()
-        
-        if(empty_cells == self.GRID_SIZE**2):
-            return False, "The Sudoku board is empty"
-        elif(empty_cells > self.GRID_SIZE**2 - self.MIN_CLUES):
-            return False, "More than one solution might exist (less than 17 clues)"
-        
-        if not(self.check_contradiction(sudoku)):
-            return False, "Contradiction(s) exist in board"
-        if empty_cells == 0:
-            return False, "The Sudoku board is already solved"
-        
-        return True, "The board is valid and ready to solve"
-    
-    def check_contradiction(self, sudoku):
-        board = sudoku.get_board()
-        
-        for i in range(self.GRID_SIZE):
-            row_digits, col_digits = set(), set()
-            for j in range(self.GRID_SIZE):
-                # Rows check:
-                val_row = board[i][j]
-                if val_row != 0:
-                    if val_row in row_digits:
-                        return False
-                    row_digits.add(val_row)
-                
-                # Columns check:
-                val_col = board[j][i]
-                if val_col != 0:
-                    if val_col in col_digits:
-                        return False
-                    col_digits.add(val_col)
-        # Blocks check:
-        for b_ind in range(9):
-            block_digits = set()
-            for r, c in sudoku.scan_map['block'][b_ind]:
-                val_block = sudoku.board[r][c]
-                if(val_block != 0):
-                    if(val_block in block_digits):
-                        return False
-                    block_digits.add(val_block)
-        return True
  
 if __name__ == '__main__':
     root = tk.Tk()

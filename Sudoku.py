@@ -142,8 +142,6 @@ class Sudoku:
                     count += 1
         self.empty_cells = count
 
-                  
-        
     def is_correct(self):
     # Checks if the current board is solved correctly
         def is_valid_group(group):
@@ -229,6 +227,19 @@ class Sudoku:
         if val in self.board[block_rows:block_rows+3, block_columns:block_columns+3]:
             return False
         return True
+    
+    def board_status(self):
+        empty_cells = self.get_empty_cells()
+        if empty_cells == 81:
+            return False, "The Sudoku board is empty"
+        elif empty_cells > 64:
+            return False, "More than one solution might exist (less than 17 clues)"
+        elif not self.is_valid():
+            return False, "Contradiction(s) exist in board"
+        elif empty_cells == 0:
+            return False, "The Sudoku board is already solved"
+        return True, "The board is valid and ready to solve"
+
     
     def solve(self, verbose=False):
     # Solves the current Sudoku board
