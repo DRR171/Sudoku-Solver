@@ -1,3 +1,4 @@
+![Sudoku Logo](./logo/Sudoku_Solver_logo.png)
 # Sudoku-Solver
 Sudoku Solver is a personal project written in Python.
 This application lets users:
