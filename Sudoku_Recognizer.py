@@ -65,7 +65,8 @@ class Sudoku_Recognizer:
                                           minDistance=10)
         
         corners = np.concatenate([corners1, corners2, corners3], axis=0)
-        corners = np.int0(corners)
+        
+        corners = corners.astype(int)
     
         # Extract corners as a list of (x, y)
         points = [tuple(c.ravel()) for c in corners]
